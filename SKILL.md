@@ -4,11 +4,14 @@ description: >-
   This skill should be used when the user needs to work on multiple
   branches simultaneously, "create worktree", "worktree status", "merge worktree",
   "cleanup worktree", "worktree done", "parallel branches", "isolated workspace",
+  "design parallel development", "parallel worktree architecture",
+  "multi-session development", "split project for parallel work",
   "開 worktree", "平行分支", "獨立工作區", "worktree 狀態", "合併 worktree",
-  "清理 worktree", or before starting feature work that needs isolation.
-version: 0.2.0
-tools: Bash, Read, Glob
-argument-hint: "<command> [branch] (e.g. create auth-login, status, done feature/auth, cleanup --all)"
+  "清理 worktree", "設計平行開發", "雙 worktree 開發", "多 session 並行",
+  or before starting feature work that needs isolation.
+version: 0.3.0
+tools: Bash, Read, Write, Glob
+argument-hint: "<command> [branch] (e.g. design, create auth-login, status, done feature/auth, cleanup --all)"
 ---
 
 # Git Worktrees
@@ -23,12 +26,95 @@ Delegate worktree operations to `worker` agent.
 
 | Command | Usage | Purpose |
 |---------|-------|---------|
+| **design** | `design` | Architect parallel dev: scaffold → ownership → worktrees → CLAUDE.local.md |
 | **create** | `create [name]` | New worktree with smart naming + dependency install + baseline test |
 | **status** | `status` | Overview all active worktrees with branch/dirty/ahead-behind info |
 | **done** | `done [branch]` | Merge completed worktree back to base branch |
 | **cleanup** | `cleanup [branch\|--all]` | Remove worktree(s) with optional backup |
 
 If no sub-command is given or intent is ambiguous, detect from context or ask.
+
+---
+
+## Design (Parallel Development)
+
+Architect a project for parallel multi-agent development: analyze the codebase, define
+file ownership boundaries, build shared scaffold, create worktrees with per-session guidance.
+
+Use when multiple Claude Code sessions need to work simultaneously on different parts.
+
+### Step 1 — Analyze Split Points
+
+Scan the project structure (or spec/plan) to identify natural partition boundaries:
+
+| Split Type | Signal | Example |
+|-----------|--------|---------|
+| Backend / Frontend | Separate language stacks | Go + React, Python + Vue |
+| Module A / Module B | Independent domain dirs | auth/ + billing/ |
+| Core / Plugin | Extension architecture | engine/ + plugins/ |
+
+Verify the split is viable: files in each partition should have minimal cross-references.
+
+### Step 2 — Classify File Ownership
+
+Categorize every directory into three buckets (see `references/parallel-dev-patterns.md` §3):
+
+- **FROZEN** — Shared types, interfaces, test data. Created in scaffold. Modified ONLY on main.
+- **OWNED** — Exclusively one worktree. No overlap.
+- **SHARED MUTABLE** — PROGRESS.md only.
+
+Present an ownership table to the user for confirmation before proceeding.
+
+### Step 3 — Build Scaffold on Main
+
+On the main branch, create all FROZEN artifacts:
+
+1. Shared types/interfaces (data models, API contracts, protocol definitions)
+2. If multi-language: mirror types across stacks (e.g., Go structs ↔ TypeScript interfaces)
+3. Test fixtures (sample data for testing parsers/renderers)
+4. Build infrastructure (Makefile, package.json, go.mod, etc.)
+5. `PROGRESS.md` from template (see `references/parallel-dev-patterns.md` §5)
+6. `CLAUDE.md` with ownership rules
+
+Verify the scaffold compiles/builds, then commit.
+
+### Step 4 — Create Worktree Branches
+
+```bash
+git branch wt/<name-a>
+git branch wt/<name-b>
+git worktree add .worktrees/<name-a> wt/<name-a>
+git worktree add .worktrees/<name-b> wt/<name-b>
+```
+
+Install dependencies in each worktree if needed (node_modules, go mod download, etc.).
+
+### Step 5 — Generate CLAUDE.local.md
+
+Write a `CLAUDE.local.md` in each worktree root using the template from
+`references/parallel-dev-patterns.md` §4. This file guides each Claude Code session
+to respect ownership boundaries.
+
+### Step 6 — Report
+
+```
+Parallel development ready
+
+  Worktrees:
+    .worktrees/backend  → wt/backend   (Go backend)
+    .worktrees/frontend → wt/frontend  (React frontend)
+
+  Scaffold: 35 files committed on main
+  Frozen:   internal/protocol/, frontend/src/types/, testdata/
+  Shared:   PROGRESS.md
+
+  Start sessions:
+    cd .worktrees/backend  && claude
+    cd .worktrees/frontend && claude
+
+  Merge (zero-conflict guaranteed):
+    git merge wt/backend && git merge wt/frontend
+```
 
 ---
 
@@ -258,6 +344,11 @@ Cleanup complete
 | Force-deleting unmerged branch | Always offer backup first |
 | Merging without pulling base | Always fetch + pull before merge |
 | Non-tracked files missing in worktree | .env, config files need manual copy — warn user |
+
+## Additional Resources
+
+### Reference Files
+- **`references/parallel-dev-patterns.md`** — Templates for CLAUDE.local.md, PROGRESS.md, file ownership model, and scaffold-first pattern. Read during `design` command.
 
 ## Integration
 
