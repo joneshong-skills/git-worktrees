@@ -1,14 +1,6 @@
 ---
 name: git-worktrees
-description: >-
-  This skill should be used when the user needs to work on multiple
-  branches simultaneously, "create worktree", "worktree status", "merge worktree",
-  "cleanup worktree", "worktree done", "parallel branches", "isolated workspace",
-  "design parallel development", "parallel worktree architecture",
-  "multi-session development", "split project for parallel work",
-  "開 worktree", "平行分支", "獨立工作區", "worktree 狀態", "合併 worktree",
-  "清理 worktree", "設計平行開發", "雙 worktree 開發", "多 session 並行",
-  or before starting feature work that needs isolation.
+description: "worktree, parallel, git, worktrees, development, create, status, 開 worktree, 平行分支, 獨立工作區, worktree 狀態"
 version: 0.3.0
 tools: Bash, Read, Write, Glob
 argument-hint: "<command> [branch] (e.g. design, create auth-login, status, done feature/auth, cleanup --all)"
