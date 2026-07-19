@@ -4,6 +4,7 @@ description: "worktree, parallel, git, worktrees, development, create, status, é
 version: 0.3.0
 tools: Bash, Read, Write, Glob
 argument-hint: "<command> [branch] (e.g. design, create auth-login, status, done feature/auth, cleanup --all)"
+disable-model-invocation: true
 ---
 
 # Git Worktrees
